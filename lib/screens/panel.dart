@@ -3,7 +3,6 @@ import 'package:doctor_dashboard/screens/patientList.dart';
 import 'package:doctor_dashboard/screens/waitingList.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import 'adminList.dart';
 import 'doctorList.dart';
@@ -194,8 +193,8 @@ class _TileState extends State<Tile> {
             Navigator.push(
                 context, MaterialPageRoute(builder: (context) => AdminList()));
           else if (widget.page == 'History')
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => HistoryList()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => HistoryList()));
+          //Navigator.push(context, MaterialPageRoute(builder: (context)=> HistoryPage()));
           else if (widget.page == 'Waiting')
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => WaitingList()));

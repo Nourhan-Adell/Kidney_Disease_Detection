@@ -2,14 +2,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:doctor_dashboard/screens/history/history_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-class HistoryList extends StatefulWidget {
-  final docId, image, name, email, diagnosis;
+import 'history_details_screen.dart';
 
-  HistoryList({this.docId, this.image, this.name, this.email, this.diagnosis});
+class HistoryList extends StatefulWidget {
 
   @override
   _HistoryListState createState() => _HistoryListState();
@@ -20,7 +18,7 @@ class _HistoryListState extends State<HistoryList> {
   final ImagePicker picker = ImagePicker();
 
   final Stream<QuerySnapshot> _historyStream =
-      FirebaseFirestore.instance.collection('history').snapshots();
+  FirebaseFirestore.instance.collection('history').snapshots();
 
   Future pickImage() async {
     final upload = await picker.getImage(source: ImageSource.gallery);
@@ -56,11 +54,15 @@ class _HistoryListState extends State<HistoryList> {
           return ListView.builder(
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (_, index) {
+              List images = snapshot.data!.docChanges[index].doc['images'];
+              List diagnosis = snapshot.data!.docChanges[index].doc['diagnosis'];
+              print(images);
+              int counter = images.length;
               return Card(
                 child: ListTile(
                   leading: ClipRRect(
                     child: Image.network(
-                      snapshot.data!.docChanges[index].doc['image'],
+                      images[--counter],
                       fit: BoxFit.cover,
                       width: 50,
                       height: 50,
@@ -76,7 +78,7 @@ class _HistoryListState extends State<HistoryList> {
                                 color: Colors.grey,
                                 value: loadingProgress.expectedTotalBytes != null
                                     ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
+                                    loadingProgress.expectedTotalBytes!
                                     : null),
                           );
                         }
@@ -93,17 +95,18 @@ class _HistoryListState extends State<HistoryList> {
                     ),
                   ),
                   subtitle: Text(
-                    snapshot.data!.docChanges[index].doc['diagnosis'],
+                    snapshot.data!.docChanges[index].doc['diagnosis'][0],
                   ),
                   trailing: Icon(Icons.arrow_forward),
                   onTap: (){
                     Navigator.push(
-                      context, MaterialPageRoute(builder: (context) => HistoryDetailsScreen(
+                        context, MaterialPageRoute(builder: (context) => HistoryDetailsScreen(
                       docId: snapshot.data!.docChanges[index].doc['id'],
                       image: snapshot.data!.docChanges[index].doc['image'],
                       diagnosis: snapshot.data!.docChanges[index].doc['diagnosis'],
                       email: snapshot.data!.docChanges[index].doc['email'],
                       time: snapshot.data!.docChanges[index].doc['time'],
+                      list: images,
                     ))
                     );
                   },
@@ -111,97 +114,6 @@ class _HistoryListState extends State<HistoryList> {
               );
             },
           );
-/*
-          return Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListView.builder(
-              itemCount: snapshot.data!.docs.length,
-              itemBuilder: (_, index) {
-                return GestureDetector(
-                  onTap: () {},
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: 4,
-                      ),
-                      FractionallySizedBox(
-                          widthFactor: 0.85,
-                          child: Padding(
-                              padding: EdgeInsets.only(
-                                  top: MediaQuery.of(context).size.height *
-                                      0.02),
-                              child: (image == null)
-                                  ? Image.network(widget.image)
-                                  : Image.file(image!))),
-
-
-                      Column(
-                        children: [
-                          ListTile(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              side: BorderSide(
-                                color: Colors.black,
-                              ),
-                            ),
-                            title: Text(
-                              snapshot.data!.docChanges[index].doc['email'],
-                              style: TextStyle(
-                                fontSize: 20,
-                              ),
-                            ),
-                            contentPadding: EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 16,
-                            ),
-                          ),
-                          ListTile(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              side: BorderSide(
-                                color: Colors.black,
-                              ),
-                            ),
-                            title: Text(
-                              snapshot.data!.docChanges[index].doc['diagnosis'],
-                              style: TextStyle(
-                                fontSize: 20,
-                              ),
-                            ),
-                            contentPadding: EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 16,
-                            ),
-                          ),
-                          ListTile(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              side: BorderSide(
-                                color: Colors.black,
-                              ),
-                            ),
-                            title: Text(
-                              snapshot.data!.docChanges[index].doc['time'],
-                              style: TextStyle(
-                                fontSize: 20,
-                              ),
-                            ),
-                            contentPadding: EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          );
-*/
         },
       ),
     );
