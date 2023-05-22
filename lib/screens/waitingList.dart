@@ -12,12 +12,14 @@ class _WaitingListState extends State<WaitingList> {
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
       .collection('users')
       .where('role', isEqualTo: 'Patient')
-      .where('isAssigned', isEqualTo: 'NA')
+      .where('assignedTo', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+      .where('isAssigned', isEqualTo: false)
       .snapshots();
 
   isAssigned(docId) {
     FirebaseFirestore.instance.collection("users").doc(docId).update({
-      'isAssigned': FirebaseAuth.instance.currentUser!.uid,
+      'assignedTo': FirebaseAuth.instance.currentUser!.uid,
+      'isAssigned': true,
     });
   }
 
@@ -61,30 +63,126 @@ class _WaitingListState extends State<WaitingList> {
                   ),
                   Padding(
                     padding: EdgeInsets.only(
-                      left: 3,
-                      right: 3,
-                    ),
-                    child: ListTile(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(
-                          color: Colors.black,
+                          left: 3,
+                          right: 3,
                         ),
-                      ),
-                      onTap: isAssigned(snapshot.data!.docChanges[index]
-                          .doc['uid']),
-                        title: Text(
-                          snapshot.data!.docChanges[index].doc['email'],
-                          style: TextStyle(
-                            fontSize: 20,
+                        child: ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(
+                              color: Colors.black,
+                            ),
+                          ),
+                          /*onTap:
+                              () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => PatientDetails(
+                                        docId: snapshot.data!.docs[index].id,
+                                        */ /*image: snapshot.data!.docChanges[index]
+                                            .doc['image'],*/ /*
+                                        name: snapshot.data!.docChanges[index]
+                                            .doc['name'],
+                                        email: snapshot.data!.docChanges[index]
+                                            .doc['email'],
+                                        age: snapshot.data!.docChanges[index]
+                                            .doc['age'])));
+                          },*/
+                          title: Text(
+                            snapshot.data!.docChanges[index].doc['email'],
+                            style: TextStyle(
+                              fontSize: 20,
+                            ),
+                          ),
+                          subtitle: Text(
+                            snapshot.data!.docChanges[index].doc['name'],
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
+                            trailing: Container(
+                              width: 25,
+                              child: PopupMenuButton(
+                                onSelected: (dynamic value) {
+                                  if (value == "Approve") {
+                                    showDialog(
+                                        context: context,
+                                        builder: (_) => AlertDialog(
+                                            title: Text('Accept Patient',
+                                                textAlign:
+                                                TextAlign.center),
+                                            content: Text(
+                                                'Are you sure you want to accept this patient?'),
+                                            actions: [
+                                              TextButton(
+                                                  onPressed: () {
+                                                    //FirebaseFirestore.instance.collection("users").doc(docId).update({
+                                                    //       'assignedTo': FirebaseAuth.instance.currentUser!.uid,
+                                                    //       'isAssigned': true,
+                                                    //     });
+                                                    FirebaseFirestore.instance.collection("users").doc(snapshot.data!.docs[index].id)
+                                                        .update({'assignedTo': FirebaseAuth.instance.currentUser!.uid,
+                                                      'isAssigned': true,});
+                                                    Navigator.of(context)
+                                                        .pop();
+                                                  },
+                                                  child: Text('YES')),
+                                              TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context)
+                                                        .pop();
+                                                  },
+                                                  child: Text('NO')),
+                                            ]));
+                                  }
+                                  if (value == "Decline")
+                                    showDialog(
+                                        context: context,
+                                        builder: (_) => AlertDialog(
+                                            title: Text('Decline Patient',
+                                                textAlign:
+                                                TextAlign.center),
+                                            content: Text(
+                                                'Are you sure you want to decline this patient?'),
+                                            actions: [
+                                              TextButton(
+                                                  onPressed: () {
+                                                    FirebaseFirestore.instance.collection("users").doc(snapshot.data!.docs[index].id)
+                                                        .update({'assignedTo': FirebaseAuth.instance.currentUser!.uid,
+                                                      'isAssigned': false,});
+                                                    Navigator.of(context)
+                                                        .pop();
+                                                  },
+                                                  child: Text('YES')),
+                                              TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context)
+                                                        .pop();
+                                                  },
+                                                  child: Text('NO')),
+                                            ]));
+                                },
+                                itemBuilder: (BuildContext context) =>
+                                <PopupMenuEntry<String>>[
+                                  const PopupMenuItem<String>(
+                                    value: 'Approve',
+                                    child: Text('Approve'),
+                                  ),
+                                  const PopupMenuItem<String>(
+                                    value: 'Decline',
+                                    child: Text('Decline'),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                    contentPadding: EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
                           ),
                         ),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 16,
-                        ),
                       ),
-                    ),
                     ],
                   ),
                 );

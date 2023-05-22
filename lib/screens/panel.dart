@@ -1,17 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doctor_dashboard/screens/patientList.dart';
-import 'package:doctor_dashboard/screens/waitingList.dart';
+import 'package:doctor_dashboard/screens/users.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'adminList.dart';
 import 'doctorList.dart';
-import 'history/historyList.dart';
+import 'history/historyScreen.dart';
 import 'login.dart';
 
 var patientCount;
 var doctorCount;
-var adminCount;
 var historyCount;
 var waitingCount;
 
@@ -25,7 +23,8 @@ class _PanelState extends State<Panel> {
     FirebaseFirestore.instance
         .collection("users")
         .where('role', isEqualTo: 'Patient')
-        .where('isAssigned', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+        .where('assignedTo', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+        .where('isAssigned', isEqualTo: true)
         .snapshots()
         .listen((snapshot) {
       snapshot.docChanges.forEach((element) {
@@ -38,12 +37,13 @@ class _PanelState extends State<Panel> {
     FirebaseFirestore.instance
         .collection("users")
         .where('role', isEqualTo: 'Patient')
-        .where('isAssigned', isEqualTo: 'NA')
+        .where('assignedTo', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+        .where('isAssigned', isEqualTo: false)
         .snapshots()
         .listen((snapshot) {
       snapshot.docChanges.forEach((element) {
         setState(() {
-          waitingCount = snapshot.docs.length;
+          waitingCount = snapshot.docs.length ?? 0;
         });
       });
     });
@@ -55,30 +55,19 @@ class _PanelState extends State<Panel> {
         .listen((snapshot) {
       snapshot.docChanges.forEach((element) {
         setState(() {
-          doctorCount = snapshot.docs.length;
+          doctorCount = snapshot.docs.length ?? 0;
         });
       });
     });
 
     FirebaseFirestore.instance
-        .collection("users")
-        .where('role', isEqualTo: 'Admin')
+        .collection("temp")
+        .where('assignedTo', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
         .snapshots()
         .listen((snapshot) {
       snapshot.docChanges.forEach((element) {
         setState(() {
-          adminCount = snapshot.docs.length;
-        });
-      });
-    });
-
-    FirebaseFirestore.instance
-        .collection("history")
-        .snapshots()
-        .listen((snapshot) {
-      snapshot.docChanges.forEach((element) {
-        setState(() {
-          historyCount = snapshot.docs.length;
+          historyCount = snapshot.docs.length ?? 0;
         });
       });
     });
@@ -132,17 +121,13 @@ class _PanelState extends State<Panel> {
                 title: 'DOCTORS',
                 page: 'Doctors'),
             Tile(
-                number: "${adminCount.toString()}",
-                title: 'ADMINS',
-                page: 'Admins'),
-            Tile(
                 number: "${historyCount.toString()}",
                 title: 'HISTORY',
                 page: 'History'),
             Tile(
                 number: "${waitingCount.toString()}",
-                title: 'WAITING',
-                page: 'Waiting'),
+                title: 'PENDING',
+                page: 'Pending'),
           ],
         ));
   }
@@ -182,22 +167,18 @@ class _TileState extends State<Tile> {
       child: InkWell(
         onTap: () {
           if (widget.page == 'Patients')
-            /*Navigator.push(
-                context, MaterialPageRoute(builder: (context) => Users()));*/
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => PatientList()));
           else if (widget.page == 'Doctors') {
+            print(FirebaseAuth.instance.currentUser!.uid);
             Navigator.push(
                 context, MaterialPageRoute(builder: (context) => DoctorList()));
-          } else if (widget.page == 'Admins')
-            Navigator.push(
-                context, MaterialPageRoute(builder: (context) => AdminList()));
+          }
           else if (widget.page == 'History')
             Navigator.push(context, MaterialPageRoute(builder: (context) => HistoryList()));
-          //Navigator.push(context, MaterialPageRoute(builder: (context)=> HistoryPage()));
-          else if (widget.page == 'Waiting')
+          else if (widget.page == 'Pending')
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => WaitingList()));
+                MaterialPageRoute(builder: (context) => Users()));
         },
         child: Column(children: [
           Expanded(

@@ -269,7 +269,7 @@ class _RegisterState extends State<Register> {
                                   showProgress = true;
                                 });
                                 signUp(emailController.text,
-                                    passwordController.text, 'Admin', name.text, mobile.text);
+                                    passwordController.text, 'Doctor', name.text, mobile.text);
                               },
                               child: Text(
                                 "Register",

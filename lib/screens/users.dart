@@ -1,5 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:doctor_dashboard/screens/user_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'addscreen.dart';
@@ -24,9 +25,13 @@ class _UsersState extends State<Users> {
                       MaterialPageRoute(builder: (context) => Addscreen()));
                 })
           ],
-          title: Text('Users', style: TextStyle(fontWeight: FontWeight.bold))),
+          title: Text('Pending Patients', style: TextStyle(fontWeight: FontWeight.bold))),
       body: StreamBuilder(
-          stream: FirebaseFirestore.instance.collection("users").snapshots(),
+          stream: FirebaseFirestore.instance.collection("users")
+              .where('role', isEqualTo: 'Patient')
+              .where('assignedTo', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+              .where('isAssigned', isEqualTo: false)
+              .snapshots(),
           builder: (BuildContext context, AsyncSnapshot snapshot) {
             if (!snapshot.hasData)
               return Center(child: CircularProgressIndicator());
@@ -40,13 +45,13 @@ class _UsersState extends State<Users> {
                       elevation: 5.0,
                       child: Column(
                         children: [
-                          /*Expanded(
+                          Expanded(
                               child: CachedNetworkImage(
                                   imageUrl: snapshot.data.docs[index]
-                                      .data()['Image'])),*/
+                                      .data()['imgurl'])),
                           ListTile(
                               title: Text(
-                                  snapshot.data.docs[index].data()['fullName']),
+                                  snapshot.data.docs[index].data()['name']),
                               subtitle: Text(snapshot.data.docs[index]
                                   .data()['email']
                                   .toString()),
@@ -54,49 +59,52 @@ class _UsersState extends State<Users> {
                                 width: 25,
                                 child: PopupMenuButton(
                                   onSelected: (dynamic value) {
-                                    if (value == "Edit") {
-                                      print(snapshot.data.docs[index]
-                                          .data()['image']);
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => UserScreen(
-                                                  docId: snapshot
-                                                      .data.docs[index].id,
-                                                  image: snapshot
-                                                      .data.docs[index]
-                                                      .data()['image'],
-                                                  name: snapshot
-                                                      .data.docs[index]
-                                                      .data()['fullName'],
-                                                  email: snapshot
-                                                      .data.docs[index]
-                                                      .data()['email']
-                                                      .toString(),
-                                                  age: snapshot.data.docs[index]
-                                                      .data()['age'])));
-                                    }
-                                    if (value == "Delete")
+                                    if (value == "Approve") {
                                       showDialog(
                                           context: context,
                                           builder: (_) => AlertDialog(
-                                                  title: Text('Delete Item',
+                                              title: Text('Accept Patient',
+                                                  textAlign:
+                                                  TextAlign.center),
+                                              content: Text(
+                                                  'Are you sure you want to accept this patient?'),
+                                              actions: [
+                                                TextButton(
+                                                    onPressed: () {
+                                                      //FirebaseFirestore.instance.collection("users").doc(docId).update({
+                                                      //       'assignedTo': FirebaseAuth.instance.currentUser!.uid,
+                                                      //       'isAssigned': true,
+                                                      //     });
+                                                      FirebaseFirestore.instance.collection("users").doc(snapshot.data!.docs[index].id)
+                                                          .update({'assignedTo': FirebaseAuth.instance.currentUser!.uid,
+                                                        'isAssigned': true,});
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                    child: Text('YES')),
+                                                TextButton(
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                    child: Text('NO')),
+                                              ]));
+                                    }
+                                    if (value == "Decline")
+                                      showDialog(
+                                          context: context,
+                                          builder: (_) => AlertDialog(
+                                                  title: Text('Decline Item',
                                                       textAlign:
                                                           TextAlign.center),
                                                   content: Text(
-                                                      'Are you sure you want to delete this user?'),
+                                                      'Are you sure you want to decline this user?'),
                                                   actions: [
                                                     TextButton(
                                                         onPressed: () {
-                                                          FirebaseFirestore
-                                                              .instance
-                                                              .collection(
-                                                                  "users")
-                                                              .doc(snapshot
-                                                                  .data
-                                                                  .docs[index]
-                                                                  .id)
-                                                              .delete();
+                                                          FirebaseFirestore.instance.collection("users").doc(snapshot.data!.docs[index].id)
+                                                              .update({'assignedTo': 'NA',
+                                                            'isAssigned': false,});
                                                           Navigator.of(context)
                                                               .pop();
                                                         },
@@ -112,12 +120,12 @@ class _UsersState extends State<Users> {
                                   itemBuilder: (BuildContext context) =>
                                       <PopupMenuEntry<String>>[
                                     const PopupMenuItem<String>(
-                                      value: 'Edit',
-                                      child: Text('Edit'),
+                                      value: 'Approve',
+                                      child: Text('Approve'),
                                     ),
                                     const PopupMenuItem<String>(
-                                      value: 'Delete',
-                                      child: Text('Delete'),
+                                      value: 'Decline',
+                                      child: Text('Decline'),
                                     ),
                                   ],
                                 ),

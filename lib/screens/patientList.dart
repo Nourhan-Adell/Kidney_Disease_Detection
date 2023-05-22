@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:doctor_dashboard/screens/addscreen.dart';
+import 'package:doctor_dashboard/screens/patientDetails.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +16,8 @@ class _PatientListState extends State<PatientList> {
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
       .collection('users')
       .where('role', isEqualTo: 'Patient')
-      .where('isAssigned', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+      .where('assignedTo', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+      .where('isAssigned', isEqualTo: true)
       .snapshots();
 
   @override
@@ -23,6 +26,14 @@ class _PatientListState extends State<PatientList> {
       backgroundColor: Theme.of(context).primaryColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).accentColor,
+        actions: [
+          IconButton(
+              icon: Icon(Icons.add_circle, size: 32),
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => Addscreen()));
+              })
+        ],
         title: Text('Patients'),
       ),
       body: StreamBuilder(
@@ -45,7 +56,19 @@ class _PatientListState extends State<PatientList> {
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (_, index) {
                 return GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                        builder: (context) => PatientDetails(
+                          docId: snapshot.data!.docChanges[index].doc['uid'],
+                          name: snapshot.data!.docChanges[index].doc['name'],
+                          email: snapshot.data!.docChanges[index].doc['email'],
+                          age: snapshot.data!.docChanges[index].doc['age'],
+                          number: snapshot.data!.docChanges[index].doc['number'],
+                          image: snapshot.data!.docChanges[index].doc['imgurl'],
+                        )));
+                  },
                   child: Column(
                     children: [
                       SizedBox(

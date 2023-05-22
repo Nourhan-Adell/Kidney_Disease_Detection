@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 class Addscreen extends StatefulWidget {
@@ -15,6 +15,7 @@ class Addscreen extends StatefulWidget {
 class _AddscreenState extends State<Addscreen> {
   File? image;
   TextEditingController name = new TextEditingController();
+  TextEditingController number = new TextEditingController();
   TextEditingController email = new TextEditingController();
   TextEditingController age = new TextEditingController();
   final ImagePicker picker = ImagePicker();
@@ -34,7 +35,7 @@ class _AddscreenState extends State<Addscreen> {
         appBar: AppBar(
           backgroundColor: Theme.of(context).accentColor,
           title:
-              Text('ADD USER', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('ADD PATIENT', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
         body: Center(
           child: ListView(children: [
@@ -98,16 +99,35 @@ class _AddscreenState extends State<Addscreen> {
                             padding: EdgeInsets.only(
                                 top: MediaQuery.of(context).size.height * 0.02),
                             child: TextFormField(
-                                controller: email,
-                                keyboardType: TextInputType.emailAddress,
+                              controller: email,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (value) {
+                                if (value!.isEmpty) return 'Required';
+                                return null;
+                              },
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.email),
+                                  labelText: 'Email Address'),
+                            ),
+                          ),
+                        ),
+                        FractionallySizedBox(
+                          widthFactor: 0.85,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                                top: MediaQuery.of(context).size.height * 0.02),
+                            child: TextFormField(
+                                controller: number,
+                                keyboardType: TextInputType.number,
                                 validator: (value) {
                                   if (value!.isEmpty) return 'Required';
                                   return null;
                                 },
                                 decoration: InputDecoration(
                                     border: OutlineInputBorder(),
-                                    labelText: 'Email',
-                                    prefixIcon: Icon(Icons.email))),
+                                    labelText: 'Phone Number',
+                                    prefixIcon: Icon(Icons.phone))),
                           ),
                         ),
                         FractionallySizedBox(
@@ -117,6 +137,7 @@ class _AddscreenState extends State<Addscreen> {
                                 top: MediaQuery.of(context).size.height * 0.02),
                             child: TextFormField(
                                 controller: age,
+                                keyboardType: TextInputType.number,
                                 validator: (value) {
                                   if (value!.isEmpty) return 'Required';
                                   return null;
@@ -174,10 +195,15 @@ class _AddscreenState extends State<Addscreen> {
                                             FirebaseFirestore.instance
                                                 .collection("users")
                                                 .add({
-                                              "fullName": name.text,
+                                              "name": name.text,
+                                              "number": number.text,
                                               "email": email.text,
                                               "age": age.text,
-                                              "image": url
+                                              "imgurl": url,
+                                              "assignedTo": FirebaseAuth
+                                                  .instance.currentUser!.uid,
+                                              "isAssigned": true,
+                                              "role": 'Patient'
                                             });
                                           });
                                           ScaffoldMessenger.of(context)
