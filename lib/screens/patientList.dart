@@ -13,12 +13,28 @@ class PatientList extends StatefulWidget{
 
 class _PatientListState extends State<PatientList> {
 
+  DateTime? _dateOfBirth;
+  int? _age;
+
+
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
       .collection('users')
       .where('role', isEqualTo: 'Patient')
       .where('assignedTo', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
       .where('isAssigned', isEqualTo: true)
       .snapshots();
+
+  void _calculateAge() {
+    final now = DateTime.now();
+    final age = now.year - _dateOfBirth!.year;
+    if (now.month < _dateOfBirth!.month ||
+        (now.month == _dateOfBirth!.month && now.day < _dateOfBirth!.day)) {
+      _age = age - 1;
+    } else {
+      _age = age;
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +71,11 @@ class _PatientListState extends State<PatientList> {
             child: ListView.builder(
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (_, index) {
+                final dobTimestamp = snapshot.data!.docChanges[index].doc['dateOfBirth'] as Timestamp?;
+                if (dobTimestamp != null) {
+                  _dateOfBirth = dobTimestamp.toDate();
+                  _calculateAge();
+                }
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -64,9 +85,14 @@ class _PatientListState extends State<PatientList> {
                           docId: snapshot.data!.docChanges[index].doc['uid'],
                           name: snapshot.data!.docChanges[index].doc['name'],
                           email: snapshot.data!.docChanges[index].doc['email'],
-                          age: snapshot.data!.docChanges[index].doc['age'],
+                          //age: snapshot.data!.docChanges[index].doc['age'],
+                          age: _age.toString(),
                           number: snapshot.data!.docChanges[index].doc['number'],
                           image: snapshot.data!.docChanges[index].doc['imgurl'],
+                          gender: snapshot.data!.docChanges[index].doc['gender'],
+                          height: snapshot.data!.docChanges[index].doc['height'],
+                          weight: snapshot.data!.docChanges[index].doc['weight'],
+                          bloodType: snapshot.data!.docChanges[index].doc['bloodGroup'],
                         )));
                   },
                   child: Column(
@@ -108,6 +134,5 @@ class _PatientListState extends State<PatientList> {
       ),
     );
   }
-
 }
 

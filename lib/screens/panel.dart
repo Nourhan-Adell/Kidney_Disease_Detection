@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doctor_dashboard/screens/patientList.dart';
-import 'package:doctor_dashboard/screens/users.dart';
+import 'package:doctor_dashboard/screens/pending_patients.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 

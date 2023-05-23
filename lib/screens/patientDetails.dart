@@ -3,10 +3,23 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 class PatientDetails extends StatefulWidget {
-  final docId, name, email, age, number, image;
+  final docId, name, email, age, number, image, gender, height, weight, bloodType;
+
+  /*PatientDetails(
+      {this.docId, this.name, this.email, this.age, this.number, this.image});
+*/
 
   PatientDetails(
-      {this.docId, this.name, this.email, this.age, this.number, this.image});
+      {this.docId,
+      this.name,
+      this.email,
+      this.age,
+      this.number,
+      this.image,
+      this.gender,
+      this.height,
+      this.weight,
+      this.bloodType});
 
   @override
   State<PatientDetails> createState() => _PatientDetailsState();
@@ -18,6 +31,10 @@ class _PatientDetailsState extends State<PatientDetails> {
   var age;
   var name;
   var number;
+  var height;
+  var weight;
+  var bloodGroup;
+  var gender;
 
   @override
   void initState() {
@@ -27,6 +44,10 @@ class _PatientDetailsState extends State<PatientDetails> {
     email = widget.email;
     age = widget.age;
     number = widget.number;
+    height = widget.height;
+    weight = widget.weight;
+    bloodGroup = widget.bloodType;
+    gender = widget.gender;
   }
 
   @override
@@ -39,15 +60,14 @@ class _PatientDetailsState extends State<PatientDetails> {
         //backgroundColor: Colors.grey[850],
         elevation: 0,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(30, 40, 30, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Center(
               child: Padding(
-                padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).size.height * 0.02),
+                padding: const EdgeInsets.all(8.0),
                 child: (image == null)
                     ? Image.network(widget.image)
                     : Image.file(image!),
@@ -86,10 +106,38 @@ class _PatientDetailsState extends State<PatientDetails> {
                                   ),
                                   ListTile(
                                     leading:
-                                    Icon(Icons.person),
+                                    Icon(Icons.numbers),
                                     title: Text("Age"),
                                     subtitle:
                                     Text(age!),
+                                  ),
+                                  ListTile(
+                                    leading:
+                                    Icon(Icons.height),
+                                    title: Text("Height"),
+                                    subtitle:
+                                    Text(height),
+                                  ),
+                                  ListTile(
+                                    leading:
+                                    Icon(Icons.line_weight),
+                                    title: Text("Weight"),
+                                    subtitle:
+                                    Text(weight),
+                                  ),
+                                  ListTile(
+                                    leading:
+                                    Icon(Icons.bloodtype),
+                                    title: Text("Blood Type"),
+                                    subtitle:
+                                    Text(bloodGroup),
+                                  ),
+                                  ListTile(
+                                    leading:
+                                    Icon(Icons.person),
+                                    title: Text("Gender"),
+                                    subtitle:
+                                    Text(gender),
                                   ),
                                 ],
                               ),
